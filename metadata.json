@@ -1,0 +1,8 @@
+{
+  "name": "RPP RA Pembelajaran Mendalam-KBC",
+  "description": "Aplikasi RPP / Modul Ajar Raudhatul Athfal (RA) Kurikulum Merdeka, Integrasi Kurikulum Berbasis Cinta (KBC) & Deep Learning.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
