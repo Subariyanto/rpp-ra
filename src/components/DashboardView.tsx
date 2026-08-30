@@ -19,9 +19,13 @@ import {
   TrendingUp,
   GraduationCap,
   ShieldCheck,
-  Compass
+  Compass,
+  FileSpreadsheet,
+  Layers,
+  ChevronRight
 } from 'lucide-react';
 import { RPPModulAjar, MuridRA, PresensiAnak, AsesmenHarian, ProfilMadrasah, UserSession } from '../types';
+import { NavTabType } from './Navbar';
 
 interface DashboardViewProps {
   userSession: UserSession | null;
@@ -31,7 +35,7 @@ interface DashboardViewProps {
   presensis: PresensiAnak[];
   asesmens: AsesmenHarian[];
   onOpenGenerator: () => void;
-  onNavigateTab: (tab: 'generator' | 'my-modules' | 'classroom' | 'assessment' | 'bank-topics' | 'guide' | 'madrasah' | 'infografis') => void;
+  onNavigateTab: (tab: NavTabType | 'generator') => void;
   onSelectModule: (m: RPPModulAjar) => void;
 }
 
@@ -82,7 +86,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex flex-wrap items-center gap-2">
               <span className="bg-amber-400 text-emerald-950 text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-xs flex items-center space-x-1">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>KMA 1503 / 2025</span>
+                <span>BSKAP 046 & KMA 1503</span>
               </span>
               <span className="bg-white/15 backdrop-blur-md text-emerald-100 text-xs font-semibold px-3 py-1 rounded-full border border-white/20 flex items-center space-x-1.5">
                 <Calendar className="w-3.5 h-3.5 text-amber-300" />
@@ -103,7 +107,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed">
               Dashboard Administrasi Pembelajaran Terpadu{' '}
               <strong className="text-white font-bold">{profilMadrasah.namaRA || 'RA Percontohan'}</strong>. 
-              Rancang modul ajar mendalam *(Mindful, Meaningful, Joyful)*, kelola presensi emosi, dan asesmen capaian perkembangan dengan mudah.
+              Alur terintegrasi: <span className="text-amber-300 font-semibold">Capaian Pembelajaran (CP)</span> ➔ <span className="text-amber-300 font-semibold">Analisis TP</span> ➔ <span className="text-amber-300 font-semibold">Alur Tujuan (ATP)</span> ➔ <span className="text-amber-300 font-semibold">Modul Ajar RPP</span>.
             </p>
 
             <div className="pt-1 flex flex-wrap items-center gap-3 text-xs text-emerald-200/80">
@@ -127,17 +131,130 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </button>
 
             <button
-              onClick={() => onNavigateTab('classroom')}
+              onClick={() => onNavigateTab('atp')}
               className="bg-white/15 hover:bg-white/25 text-white font-bold text-xs px-5 py-3 rounded-2xl border border-white/20 transition-all flex items-center justify-center space-x-2 backdrop-blur-md active:scale-95 cursor-pointer"
             >
-              <Users className="w-4 h-4 text-emerald-300" />
-              <span>Presensi & Mood Pagi Ini</span>
+              <Compass className="w-4 h-4 text-amber-300" />
+              <span>Buka Alur Tujuan (ATP)</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* 2. Key Metrics & Statistics Grid */}
+      {/* 2. ALUR PEDAGOGIK TERSTRUKTUR (BSKAP 046 / KMA 1503) */}
+      <div className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="p-1.5 bg-emerald-100 text-emerald-800 rounded-lg">
+                <Compass className="w-4 h-4" />
+              </span>
+              <h2 className="text-base sm:text-lg font-extrabold text-slate-900">
+                Alur Perancangan Pembelajaran (BSKAP No. 046)
+              </h2>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Urutan sistematis dari regulasi resmi pemerintah hingga ke modul ajar kelas harian:
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-1">
+          {/* Step 1 */}
+          <div
+            onClick={() => onNavigateTab('daftar-cp')}
+            className="p-4 bg-gradient-to-b from-slate-50 to-white hover:from-emerald-50/50 hover:to-white rounded-2xl border border-slate-200/90 hover:border-emerald-400 transition-all cursor-pointer group shadow-2xs relative"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
+                Langkah 1
+              </span>
+              <BookOpen className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+            </div>
+            <h3 className="text-xs font-bold text-slate-900 group-hover:text-emerald-700">
+              Daftar CP BSKAP 046
+            </h3>
+            <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+              3 Elemen resmi: Nilai Agama & Budi Pekerti, Jati Diri, Dasar Literasi & STEAM.
+            </p>
+            <div className="mt-3 text-[11px] font-bold text-emerald-700 flex items-center space-x-1">
+              <span>Buka Regulasi CP</span>
+              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* Step 2 */}
+          <div
+            onClick={() => onNavigateTab('analisis-cp')}
+            className="p-4 bg-gradient-to-b from-slate-50 to-white hover:from-teal-50/50 hover:to-white rounded-2xl border border-slate-200/90 hover:border-teal-400 transition-all cursor-pointer group shadow-2xs relative"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider bg-teal-100 text-teal-800 px-2 py-0.5 rounded-md">
+                Langkah 2
+              </span>
+              <FileSpreadsheet className="w-4 h-4 text-teal-600 group-hover:scale-110 transition-transform" />
+            </div>
+            <h3 className="text-xs font-bold text-slate-900 group-hover:text-teal-700">
+              Analisis CP & TP
+            </h3>
+            <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+              Pembedahan kompetensi & materi menjadi Tujuan Pembelajaran (TP) terukur untuk RA A & RA B.
+            </p>
+            <div className="mt-3 text-[11px] font-bold text-teal-700 flex items-center space-x-1">
+              <span>Lihat Rumusan TP</span>
+              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* Step 3 */}
+          <div
+            onClick={() => onNavigateTab('atp')}
+            className="p-4 bg-gradient-to-b from-slate-50 to-white hover:from-amber-50/50 hover:to-white rounded-2xl border border-slate-200/90 hover:border-amber-400 transition-all cursor-pointer group shadow-2xs relative"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md">
+                Langkah 3
+              </span>
+              <Compass className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
+            </div>
+            <h3 className="text-xs font-bold text-slate-900 group-hover:text-amber-700">
+              Alur Tujuan (ATP)
+            </h3>
+            <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+              Peta alur urutan topik semester & mingguan yang menghubungkan TP dengan ragam aktivitas KBC.
+            </p>
+            <div className="mt-3 text-[11px] font-bold text-amber-700 flex items-center space-x-1">
+              <span>Kelola Alur ATP</span>
+              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* Step 4 */}
+          <div
+            onClick={() => onNavigateTab('my-modules')}
+            className="p-4 bg-gradient-to-b from-slate-50 to-white hover:from-emerald-50/50 hover:to-white rounded-2xl border border-slate-200/90 hover:border-emerald-400 transition-all cursor-pointer group shadow-2xs relative"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
+                Langkah 4
+              </span>
+              <Sparkles className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+            </div>
+            <h3 className="text-xs font-bold text-slate-900 group-hover:text-emerald-700">
+              Modul Ajar / RPP
+            </h3>
+            <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+              Eksekusi modul ajar harian & mingguan berstandar cetak lengkap dengan asesmen & rubrik KMA 1503.
+            </p>
+            <div className="mt-3 text-[11px] font-bold text-emerald-700 flex items-center space-x-1">
+              <span>Buka Modul Ajar</span>
+              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Key Metrics & Statistics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Modul Ajar */}
         <div
@@ -236,7 +353,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 3. Main Action Hub & Recent Modules */}
+      {/* 4. Main Action Hub & Recent Modules */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Modul Ajar Terkini */}
         <div className="lg:col-span-2 space-y-4">
@@ -311,7 +428,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <BookOpen className="w-10 h-10 text-slate-300 mx-auto" />
                 <h4 className="font-bold text-slate-700 text-sm">Belum Ada Modul Ajar</h4>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  Mulai buat modul ajar pertama Anda dengan generator AI yang otomatis mengintegrasikan KMA 1503 dan KBC.
+                  Mulai buat modul ajar pertama Anda dengan generator AI yang otomatis mengintegrasikan BSKAP 046, KMA 1503 dan KBC.
                 </p>
                 <button
                   onClick={onOpenGenerator}
@@ -410,7 +527,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 4. Nilai Inti KBC & 8 Dimensi Profil Lulusan KMA 1503 */}
+      {/* 5. Nilai Inti KBC & 8 Dimensi Profil Lulusan KMA 1503 */}
       <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-7 space-y-4 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { RPPModulAjar } from '../types';
-import { Printer, Copy, Sparkles, Check, Heart, BookOpen, Layers, Clock, Users, ArrowLeft, Brain, Award, ShieldCheck, Share2, Download, FileText } from 'lucide-react';
+import { Printer, Copy, Sparkles, Check, Heart, BookOpen, Layers, Clock, Users, ArrowLeft, Brain, Award, ShieldCheck, Share2, Download, FileText, ExternalLink, Loader2 } from 'lucide-react';
+import { printHtmlViaIframe, openHtmlInNewTab, downloadHtmlFile } from '../utils/printDocument';
 
 interface RPPDetailViewProps {
   rpp: RPPModulAjar;
@@ -10,58 +11,70 @@ interface RPPDetailViewProps {
 
 export const RPPDetailView: React.FC<RPPDetailViewProps> = ({ rpp, onBack, onSave }) => {
   const [copied, setCopied] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   const [activeTab, setActiveTab] = useState<'rpph' | 'peta' | 'asesmen' | 'rumah'>('rpph');
 
   const [showPrintOptions, setShowPrintModal] = useState(false);
 
-  const handlePrint = () => {
-    try {
-      window.focus();
-      window.print();
-    } catch (err) {
-      console.warn('Direct print failed, opening print options modal', err);
-      setShowPrintModal(true);
-    }
-  };
-
-  const handleDownloadHTML = () => {
+  const getFullRppHtml = () => {
     const documentElement = document.getElementById('printable-rpp-document');
-    if (!documentElement) return;
+    const content = documentElement ? documentElement.innerHTML : '';
 
-    const fullHtml = `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <title>Modul Ajar RA - ${rpp.identitas.topikUtama}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    @page { size: A4 portrait; margin: 12mm 15mm; }
-    body { background-color: #ffffff; color: #000000; font-family: system-ui, -apple-system, sans-serif; padding: 20px; }
+    @page { size: A4 portrait; margin: 10mm 12mm; }
+    body { background-color: #ffffff; color: #000000; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; padding: 20px; }
     .print\\:hidden { display: none !important; }
+    .no-print { display: none !important; }
   </style>
 </head>
 <body>
-  <div style="max-width: 800px; margin: 0 auto;">
-    ${documentElement.innerHTML}
+  <div style="max-width: 850px; margin: 0 auto;">
+    ${content}
   </div>
   <script>
     window.onload = function() {
-      // Auto trigger print when opened
-      setTimeout(function() { window.print(); }, 500);
+      if (window.location.search.includes('autoprint=true')) {
+        setTimeout(function() { window.print(); }, 400);
+      }
     };
   </script>
 </body>
 </html>`;
+  };
 
-    const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Modul_Ajar_RA_${rpp.identitas.topikUtama.replace(/\s+/g, '_')}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  const handlePrint = async () => {
+    setIsPrinting(true);
+    try {
+      const fullHtml = getFullRppHtml();
+      await printHtmlViaIframe(fullHtml);
+    } catch (err) {
+      console.warn('Iframe print failed, opening print options modal', err);
+      try {
+        window.focus();
+        window.print();
+      } catch (e) {
+        setShowPrintModal(true);
+      }
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
+  const handleOpenNewTab = () => {
+    const fullHtml = getFullRppHtml();
+    openHtmlInNewTab(fullHtml);
+  };
+
+  const handleDownloadHTML = () => {
+    const fullHtml = getFullRppHtml();
+    const fileName = `Modul_Ajar_RA_${rpp.identitas.topikUtama.replace(/\s+/g, '_')}.html`;
+    downloadHtmlFile(fullHtml, fileName);
   };
 
   const handleCopyText = () => {
@@ -109,10 +122,10 @@ ${k.intiJoyful.pilihanRagamMain.map((m) => `  - ${m.namaSentraArea}: ${m.deskrip
           <span>Kembali ke Daftar</span>
         </button>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center flex-wrap gap-2">
           <button
             onClick={handleCopyText}
-            className="flex items-center space-x-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition-all"
+            className="flex items-center space-x-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition-all cursor-pointer"
             title="Salin ringkasan teks modul ajar"
           >
             {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
@@ -120,8 +133,17 @@ ${k.intiJoyful.pilihanRagamMain.map((m) => `  - ${m.namaSentraArea}: ${m.deskrip
           </button>
 
           <button
+            onClick={handleOpenNewTab}
+            className="flex items-center space-x-1.5 text-xs font-semibold text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-2 rounded-xl transition-all cursor-pointer"
+            title="Buka modul ajar di tab baru peramban untuk cetak PDF layar penuh"
+          >
+            <ExternalLink className="w-4 h-4 text-blue-700" />
+            <span>Buka Tab Baru</span>
+          </button>
+
+          <button
             onClick={handleDownloadHTML}
-            className="flex items-center space-x-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3.5 py-2 rounded-xl transition-all"
+            className="flex items-center space-x-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3.5 py-2 rounded-xl transition-all cursor-pointer"
             title="Unduh file HTML siap cetak A4 / simpan ke PDF"
           >
             <Download className="w-4 h-4 text-emerald-700" />
@@ -130,11 +152,12 @@ ${k.intiJoyful.pilihanRagamMain.map((m) => `  - ${m.namaSentraArea}: ${m.deskrip
 
           <button
             onClick={handlePrint}
-            className="flex items-center space-x-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded-xl shadow-xs transition-all active:scale-95"
+            disabled={isPrinting}
+            className="flex items-center space-x-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 px-4 py-2 rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer"
             title="Buka dialog cetak browser (Ctrl+P)"
           >
-            <Printer className="w-4 h-4" />
-            <span>Cetak Modul Ajar</span>
+            {isPrinting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
+            <span>{isPrinting ? 'Mempersiapkan Cetak...' : 'Cetak Modul Ajar'}</span>
           </button>
         </div>
       </div>
@@ -711,18 +734,17 @@ ${k.intiJoyful.pilihanRagamMain.map((m) => `  - ${m.namaSentraArea}: ${m.deskrip
               <button
                 onClick={() => {
                   setShowPrintModal(false);
-                  window.focus();
-                  window.print();
+                  handlePrint();
                 }}
-                className="w-full flex items-center justify-between p-3.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-2xl transition-all group"
+                className="w-full flex items-center justify-between p-3.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-2xl transition-all group cursor-pointer"
               >
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-emerald-600 text-white rounded-xl group-hover:scale-105 transition-transform">
                     <Printer className="w-4 h-4" />
                   </div>
                   <div className="text-left">
-                    <span className="font-bold text-emerald-950 text-xs block">Cetak Langsung (Browser Print)</span>
-                    <span className="text-[11px] text-emerald-700">Membuka dialog print A4 (Ctrl + P)</span>
+                    <span className="font-bold text-emerald-950 text-xs block">Cetak Langsung (Print / PDF)</span>
+                    <span className="text-[11px] text-emerald-700">Membuka dialog cetak bersih standar A4</span>
                   </div>
                 </div>
                 <span className="text-emerald-800 text-xs font-extrabold">→</span>
@@ -731,9 +753,28 @@ ${k.intiJoyful.pilihanRagamMain.map((m) => `  - ${m.namaSentraArea}: ${m.deskrip
               <button
                 onClick={() => {
                   setShowPrintModal(false);
+                  handleOpenNewTab();
+                }}
+                className="w-full flex items-center justify-between p-3.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-2xl transition-all group cursor-pointer"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-blue-600 text-white rounded-xl group-hover:scale-105 transition-transform">
+                    <ExternalLink className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <span className="font-bold text-blue-950 text-xs block">Buka di Tab Baru Peramban</span>
+                    <span className="text-[11px] text-blue-700">Tampilan layar penuh bebas hambatan iframe</span>
+                  </div>
+                </div>
+                <span className="text-blue-800 text-xs font-extrabold">→</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowPrintModal(false);
                   handleDownloadHTML();
                 }}
-                className="w-full flex items-center justify-between p-3.5 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-2xl transition-all group"
+                className="w-full flex items-center justify-between p-3.5 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-2xl transition-all group cursor-pointer"
               >
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-sky-600 text-white rounded-xl group-hover:scale-105 transition-transform">

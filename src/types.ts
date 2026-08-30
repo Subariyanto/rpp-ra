@@ -191,3 +191,51 @@ export interface BankTopikItem {
   contohRagamMain: string[];
   konteksLokalRekomendasi?: string; // Lingkungan/konteks lokal
 }
+
+// BSKAP No. 046 / KMA 1503 - CP, Analisis CP (TP), dan ATP
+export interface CPElemenBSKAP {
+  id: string;
+  kodeElemen: string;
+  namaElemen: string;
+  deskripsiElemen: string;
+  subElemen: {
+    kode: string;
+    namaSubElemen: string;
+    capaianFaseFondasi: string;
+    indikatorKunci: string[];
+    integrasiKBC: string;
+    dimensiDPL: string[];
+  }[];
+}
+
+export interface AnalisisCPTPItem {
+  id: string;
+  elemenCP: string;
+  subElemen: string;
+  kalimatCPAkhirFase: string;
+  kompetensi: string[]; // Kognitif, Afektif, Psikomotorik
+  kontenMateriEsensial: string[];
+  kelompokUsia: 'RA A (4-5 Tahun)' | 'RA B (5-6 Tahun)' | 'Semua Kelompok';
+  rumusanTP: string; // Kalimat TP
+  integrasiKBC: string; // Nilai Panca Cinta / Adab
+  dimensiDPL: string[]; // 8 DPL KMA 1503
+  keterangan?: string;
+}
+
+export interface AlurTujuanPembelajaranItem {
+  id: string;
+  kodeTP: string;
+  kelompokUsia: 'RA A (4-5 Tahun)' | 'RA B (5-6 Tahun)';
+  semester: 'Semester I (Ganjil)' | 'Semester II (Genap)';
+  mingguKe: number; // 1 s.d 17
+  topikUtama: string;
+  subTopik: string;
+  elemenCP: string;
+  tujuanPembelajaran: string;
+  materiEsensial: string;
+  alokasiWaktu: string; // e.g. '1 Minggu (900 Menit)'
+  ragamMainLooseParts: string[];
+  integrasiKBC: string;
+  profilLulusanDPL: string[];
+  indikatorKetercapaian: string[];
+}

@@ -11,14 +11,19 @@ import { DataMadrasahView } from './components/DataMadrasahView';
 import { LoginActivationModal } from './components/LoginActivationModal';
 import { ActivationManagerModal } from './components/ActivationManagerModal';
 import { InfografisPromoView } from './components/InfografisPromoView';
-import { RPPModulAjar, MuridRA, PresensiAnak, AsesmenHarian, ProfilMadrasah, UserSession, ActivationKey } from './types';
+import { DaftarCPView } from './components/DaftarCPView';
+import { AnalisisCPView } from './components/AnalisisCPView';
+import { ATPView } from './components/ATPView';
+import { RPPModulAjar, MuridRA, PresensiAnak, AsesmenHarian, ProfilMadrasah, UserSession, ActivationKey, AlurTujuanPembelajaranItem, AnalisisCPTPItem } from './types';
 import { SAMPLE_RPP_PRESET, INITIAL_MURID, INITIAL_PRESENSI, INITIAL_ASESMEN, BANK_TOPIK_RA, INITIAL_PROFIL_MADRASAH } from './data/presets';
+import { INITIAL_ANALISIS_CP_TP, INITIAL_ATP_DATA } from './data/cpAtpData';
 import { Sparkles, BookOpen, Plus, Search, Trash2, Eye, Printer, Heart, Award, Users, CheckCircle2, Calendar, PhoneCall, Flame } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<NavTabType>('dashboard');
   const [isGeneratorModalOpen, setIsGeneratorModalOpen] = useState(false);
   const [isActivationManagerOpen, setIsActivationManagerOpen] = useState(false);
+  const [selectedATPForGenerator, setSelectedATPForGenerator] = useState<AlurTujuanPembelajaranItem | null>(null);
 
   // User Auth & Activation Session
   const [userSession, setUserSession] = useState<UserSession | null>(() => {
@@ -130,6 +135,32 @@ export default function App() {
     return INITIAL_ASESMEN;
   });
 
+  // State: Analisis CP ke TP (BSKAP 046 & KMA 1503)
+  const [analisisList, setAnalisisList] = useState<AnalisisCPTPItem[]>(() => {
+    const saved = localStorage.getItem('rpp_ra_analisis_cp_tp');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return INITIAL_ANALISIS_CP_TP;
+  });
+
+  // State: Alur Tujuan Pembelajaran (ATP)
+  const [atpList, setAtpList] = useState<AlurTujuanPembelajaranItem[]>(() => {
+    const saved = localStorage.getItem('rpp_ra_atp_data');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return INITIAL_ATP_DATA;
+  });
+
   const [selectedModule, setSelectedModule] = useState<RPPModulAjar | null>(SAMPLE_RPP_PRESET);
   const [searchModule, setSearchModule] = useState('');
 
@@ -153,6 +184,14 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('rpp_ra_asesmens', JSON.stringify(asesmens));
   }, [asesmens]);
+
+  useEffect(() => {
+    localStorage.setItem('rpp_ra_analisis_cp_tp', JSON.stringify(analisisList));
+  }, [analisisList]);
+
+  useEffect(() => {
+    localStorage.setItem('rpp_ra_atp_data', JSON.stringify(atpList));
+  }, [atpList]);
 
   useEffect(() => {
     localStorage.setItem('rpp_ra_profil', JSON.stringify(profilMadrasah));
@@ -480,6 +519,39 @@ export default function App() {
           />
         )}
 
+        {/* Tab: Daftar Capaian Pembelajaran (BSKAP 046) */}
+        {activeTab === 'daftar-cp' && (
+          <DaftarCPView
+            profilMadrasah={profilMadrasah}
+            onNavigateToAnalisis={() => setActiveTab('analisis-cp')}
+            onNavigateToATP={() => setActiveTab('atp')}
+          />
+        )}
+
+        {/* Tab: Analisis CP & Penentuan TP */}
+        {activeTab === 'analisis-cp' && (
+          <AnalisisCPView
+            analisisList={analisisList}
+            onSaveAnalisisList={(updated) => setAnalisisList(updated)}
+            profilMadrasah={profilMadrasah}
+            onNavigateToATP={() => setActiveTab('atp')}
+          />
+        )}
+
+        {/* Tab: Alur Tujuan Pembelajaran (ATP) */}
+        {activeTab === 'atp' && (
+          <ATPView
+            atpList={atpList}
+            onSaveATPList={(updated) => setAtpList(updated)}
+            profilMadrasah={profilMadrasah}
+            onSelectTopicToGenerateRPP={(atpItem) => {
+              setSelectedATPForGenerator(atpItem);
+              setIsGeneratorModalOpen(true);
+            }}
+            onNavigateToAnalisis={() => setActiveTab('analisis-cp')}
+          />
+        )}
+
         {/* Tab 7: Infografis & Brosur Promo Penjualan */}
         {activeTab === 'infografis' && (
           <InfografisPromoView onBackToApp={() => setActiveTab('my-modules')} />
@@ -489,9 +561,16 @@ export default function App() {
       {/* RPP AI Generator Modal */}
       <RPPGeneratorModal
         isOpen={isGeneratorModalOpen}
-        onClose={() => setIsGeneratorModalOpen(false)}
-        onGenerated={handleGeneratedModule}
+        onClose={() => {
+          setIsGeneratorModalOpen(false);
+          setSelectedATPForGenerator(null);
+        }}
+        onGenerated={(rpp) => {
+          handleGeneratedModule(rpp);
+          setSelectedATPForGenerator(null);
+        }}
         defaultProfil={profilMadrasah}
+        initialATPItem={selectedATPForGenerator}
       />
 
       {/* Admin Activation Keys Management Modal */}

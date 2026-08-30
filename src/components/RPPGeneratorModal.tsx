@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, X, BookOpen, Heart, Layers, Clock, AlertCircle, CheckCircle2, Check, Square, Building2 } from 'lucide-react';
-import { RPPModulAjar, ProfilMadrasah } from '../types';
+import { Sparkles, X, BookOpen, Heart, Layers, Clock, AlertCircle, CheckCircle2, Check, Square, Building2, Compass } from 'lucide-react';
+import { RPPModulAjar, ProfilMadrasah, AlurTujuanPembelajaranItem } from '../types';
 
 interface RPPGeneratorModalProps {
   isOpen: boolean;
   onClose: () => void;
   onGenerated: (rpp: RPPModulAjar) => void;
   defaultProfil?: ProfilMadrasah;
+  initialATPItem?: AlurTujuanPembelajaranItem | null;
 }
 
 const PRESET_TOPIK_DATA = [
@@ -107,6 +108,7 @@ export const RPPGeneratorModal: React.FC<RPPGeneratorModalProps> = ({
   onClose,
   onGenerated,
   defaultProfil,
+  initialATPItem,
 }) => {
   const [namaYayasan, setNamaYayasan] = useState(defaultProfil?.namaYayasan || 'Yayasan Mutiara Cinta Al-Azhar');
   const [namaRA, setNamaRA] = useState(defaultProfil?.namaRA || 'RA Mutiara Cinta Al-Azhar');
@@ -134,6 +136,22 @@ export const RPPGeneratorModal: React.FC<RPPGeneratorModalProps> = ({
   const [selectedSubTopicItems, setSelectedSubTopicItems] = useState<string[]>([
     'Keajaiban Jahe, Kunyit, dan Serai Obat Alami'
   ]);
+
+  useEffect(() => {
+    if (initialATPItem) {
+      setKelompokUsia(initialATPItem.kelompokUsia);
+      setSemester(initialATPItem.semester);
+      setMingguKe(`Minggu Ke-${initialATPItem.mingguKe}`);
+      setTopikUtama(initialATPItem.topikUtama);
+      setSubTopik(initialATPItem.subTopik);
+      setSelectedSubTopicItems([initialATPItem.subTopik]);
+      setIsCustomTopik(true);
+      setSelectedTopikPreset('CUSTOM');
+      if (initialATPItem.ragamMainLooseParts && initialATPItem.ragamMainLooseParts.length > 0) {
+        setKonteksLokal(`Ragam Main: ${initialATPItem.ragamMainLooseParts.join(', ')}`);
+      }
+    }
+  }, [initialATPItem]);
 
   const [alokasiWaktu, setAlokasiWaktu] = useState('5 Hari');
   const [modelPembelajaran, setModelPembelajaran] = useState('Kelompok dengan Ragam Main (Loose Parts)');
